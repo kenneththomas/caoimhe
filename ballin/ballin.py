@@ -28,13 +28,14 @@ def scoreboard_request():
 
 #information object that will be stored in storage
 class GameInfo:
-    def __init__(self, id, team1, team2, last_play, team1_score, team2_score):
+    def __init__(self, id, team1, team2, last_play, team1_score, team2_score, downDistanceText):
         self.id = id
         self.team1 = team1
         self.team2 = team2
         self.last_play = last_play
         self.team1_score = team1_score
         self.team2_score = team2_score
+        self.downDistanceText = downDistanceText
 
 def sb_parser(scoreboard_data):
 
@@ -68,19 +69,29 @@ def sb_parser(scoreboard_data):
         team2_score = scoreboard_data['events'][evc]['competitions'][0]['competitors'][1]['score']
         #print(f'{team1} {team1_score} - {team2} {team2_score}')
 
+        try:
+            downDistanceText = scoreboard_data['events'][evc]['competitions'][0]['situation']['downDistanceText']
+        except:
+            downDistanceText = 'No down and distance available'
+
         #create GameInfo object
-        game_info = GameInfo(id, team1, team2, last_play, team1_score, team2_score)
+        game_info = GameInfo(id, team1, team2, last_play, team1_score, team2_score, downDistanceText)
 
         #store GameInfo object in storage
         storage[sb_key] = game_info
 
 def info_printer(gio):
     info = f'{(gio.team1)} {gio.team1_score} - {(gio.team2)} {gio.team2_score} | {gio.last_play}'
-    print(info)
 
     #check if info is in previous_payloads
     if info in previous_payloads:
         return info
+    
+    print(f'''
+    {(gio.team1)} {gio.team1_score} - {(gio.team2)} {gio.team2_score}
+    {gio.downDistanceText}
+    {gio.last_play}
+    ''')
 
     previous_payloads.append(info)
     return info
@@ -90,13 +101,13 @@ def info_printer(gio):
 
 
 update_interval = 90
-teams = ['Maryland','Texas','LSU','Oregon']
 
 
 #test data
 # parse scoreboard.json
 sbd = json.loads(open('scoreboard.json').read())
 
+print('-----------------------------------')
 while True:
 
     #real data
@@ -104,10 +115,8 @@ while True:
     sb_parser(sbd)
 
     for key in storage:
-        for team in teams:
-            if team in key:
-                info_printer(storage[key])
+        info_printer(storage[key])
 
-    print('-------------------')
+    print('-----------------------------------')
 
     time.sleep(update_interval)

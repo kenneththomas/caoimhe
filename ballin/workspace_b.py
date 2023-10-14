@@ -6,7 +6,7 @@ previous_payloads = []
 
 def scoreboard_request():
     # Define the API URL
-    url = "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?limit=5"
+    url = "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?limit=20"
 
     # Send an HTTP GET request to the API
     response = requests.get(url)
@@ -16,7 +16,7 @@ def scoreboard_request():
         # Parse the JSON data from the response
         data = response.json()
         
-        #scoreboarddata = json.dumps(data, indent=4)
+        scoreboarddata = json.dumps(data, indent=4)
 
     else:
         # Print an error message if the request was not successful
@@ -50,31 +50,56 @@ def sb_parser(scoreboard_data):
         team1 = scoreboard_data['events'][evc]['competitions'][0]['competitors'][0]['team']['location']
         team2 = scoreboard_data['events'][evc]['competitions'][0]['competitors'][1]['team']['location']
 
-        #make team names alphanumeric
-
-        print(f'{team1} vs {team2}')
+        #print(f'{team1} vs {team2}')
         sb_key = f'{id}_{team1}_{team2}'
-        print(sb_key)
+        #print(sb_key)
 
         #last play
-        last_play = scoreboard_data['events'][evc]['competitions'][0]['situation']['lastPlay']['text']
-        print(last_play)
+        try:
+            last_play = scoreboard_data['events'][evc]['competitions'][0]['situation']['lastPlay']['text']
+        except:
+            last_play = 'No last play available'
+        #print(last_play)
 
         #get score
         team1_score = scoreboard_data['events'][evc]['competitions'][0]['competitors'][0]['score']
         team2_score = scoreboard_data['events'][evc]['competitions'][0]['competitors'][1]['score']
-        print(f'{team1} {team1_score} - {team2} {team2_score}')
+        #print(f'{team1} {team1_score} - {team2} {team2_score}')
 
         #create GameInfo object
         game_info = GameInfo(id, team1, team2, last_play, team1_score, team2_score)
 
+        #store GameInfo object in storage
+        storage[sb_key] = game_info
 
 
-#real data
-#sbd = scoreboard_request()
+def ballin():
+    updatetime = 60
+
+def info_printer(gio):
+    info = f'{(gio.team1)} {gio.team1_score} - {(gio.team2)} {gio.team2_score} | {gio.last_play}'
+    print(info)
+
+    #check if info is in previous_payloads
+    if info in previous_payloads:
+        return info
+
+    previous_payloads.append(info)
+    return info
+
 
 #test data
 # parse scoreboard.json
 sbd = json.loads(open('scoreboard.json').read())
 
+#real data
+sbd = scoreboard_request()
 sb_parser(sbd)
+
+teams = ['Maryland','Texas','LSU','Oregon']
+
+# check each key in storage, if the key contains a team name, call info_printer
+for key in storage:
+    for team in teams:
+        if team in key:
+            info_printer(storage[key])

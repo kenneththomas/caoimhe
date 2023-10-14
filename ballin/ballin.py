@@ -2,6 +2,7 @@ import requests
 import json
 import time
 import termcolor
+import datetime
 
 storage = {}
 previous_payloads = []
@@ -109,6 +110,8 @@ sbd = json.loads(open('scoreboard.json').read())
 
 print('-----------------------------------')
 while True:
+
+    print(f'current time: {datetime.datetime.now()} - next update in {update_interval} seconds')
 
     #real data
     sbd = scoreboard_request()

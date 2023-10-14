@@ -29,7 +29,7 @@ def scoreboard_request():
 
 #information object that will be stored in storage
 class GameInfo:
-    def __init__(self, id, team1, team2, last_play, team1_score, team2_score, downDistanceText):
+    def __init__(self, id, team1, team2, last_play, team1_score, team2_score, downDistanceText, time_qtr):
         self.id = id
         self.team1 = team1
         self.team2 = team2
@@ -37,6 +37,7 @@ class GameInfo:
         self.team1_score = team1_score
         self.team2_score = team2_score
         self.downDistanceText = downDistanceText
+        self.time_qtr = time_qtr
 
 def sb_parser(scoreboard_data):
 
@@ -75,8 +76,11 @@ def sb_parser(scoreboard_data):
         except:
             downDistanceText = 'No down and distance available'
 
+        #status type detail is time and quarter
+        time_qtr = scoreboard_data['events'][evc]['status']['type']['detail']
+
         #create GameInfo object
-        game_info = GameInfo(id, team1, team2, last_play, team1_score, team2_score, downDistanceText)
+        game_info = GameInfo(id, team1, team2, last_play, team1_score, team2_score, downDistanceText, time_qtr)
 
         #store GameInfo object in storage
         storage[sb_key] = game_info
@@ -90,7 +94,7 @@ def info_printer(gio):
     
     print(f'''
     {(gio.team1)} {gio.team1_score} - {(gio.team2)} {gio.team2_score}
-    {gio.downDistanceText}
+    {gio.downDistanceText} , {gio.time_qtr}
     {gio.last_play}
     ''')
 

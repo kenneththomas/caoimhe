@@ -160,3 +160,9 @@ cython_debug/
 #.idea/
 
 maricon.py
+scoreboard.json
+*.mp4
+
+maricon.py
+scoreboard.json
+*.mp4

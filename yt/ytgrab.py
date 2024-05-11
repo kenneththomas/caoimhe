@@ -17,7 +17,8 @@ def ytgrab(url):
     return yt.title
 
 def ytgrabmp3(url):
-    yt = YouTube(url)
+    #avoid age restriction
+    yt = YouTube(url, use_oauth=False, allow_oauth_cache=False)
     normalized_title = normalize_filename(yt.title)
 
     # Download the audio
@@ -40,10 +41,54 @@ def ytgrabmp3(url):
 
     return yt.title
 
+#function to convert all mov files in a directory to mp3
+def movtomp3():
+    for file in os.listdir('.'):
+        if file.endswith('.mov'):
+            print(f'Converting {file} to mp3')
+            os.system(f'ffmpeg -i "{file}" -vn -ar 44100 -ac 2 -ab 192k -f mp3 "{file[:-4]}.mp3')
+            os.remove(file)
+
+# new function to convert existing mp4 to mp3
+def mp4tomp3(mp4file):
+    # Convert to mp3
+    print(f'Converting {mp4file} to mp3')
+    os.system(f'ffmpeg -i "{mp4file}" -vn -ar 44100 -ac 2 -ab 192k -f mp3 "{mp4file[:-4]}.mp3')
+    
+    # Remove the original mp4 file
+    print('not removing mp4')
+    #os.remove(mp4file)
+
+    # Edit mp3 file metadata
+    audiofile = eyed3.load(f'{mp4file[:-4]}.mp3')
+    audiofile.tag.title = mp4file[:-4]
+    # set artist to caoimhe
+    audiofile.tag.artist = 'caoimhe'
+    audiofile.tag.save()
+
+    return mp4file[:-4]
+
+#rename artist on all mp3 files in a directory to caoimhe
+def renameartist():
+    for file in os.listdir('.'):
+        if file.endswith('.mp3'):
+            audiofile = eyed3.load(file)
+            audiofile.tag.artist = 'caoimhe'
+            audiofile.tag.save()
+
 if __name__ == '__main__':
     print(f'yo fire it up! dl: {sys.argv[1]}')
     #cli to grab as mp3
     if len(sys.argv) > 2 and sys.argv[2] == 'mp3':
         ytgrabmp3(sys.argv[1])
+    #cli to convert existing mp4 to mp3
+    elif len(sys.argv) > 2 and sys.argv[2] == 'convert':
+        mp4tomp3(sys.argv[1])
+    #use movtomp3 to convert all mov files in a directory to mp3
+    elif len(sys.argv) > 2 and sys.argv[2] == 'mov':
+        movtomp3()
+    #rename artist on all mp3 files in a directory to caoimhe
+    elif len(sys.argv) > 2 and sys.argv[2] == 'rename':
+        renameartist()
     else:
         ytgrab(sys.argv[1])
